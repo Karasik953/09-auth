@@ -1,6 +1,6 @@
 "use server";
+import { createNote } from "@/lib/api/clientApi";
 
-import { createNote } from "@/lib/api/api";
 
 type ActionState = {
   error?: string;

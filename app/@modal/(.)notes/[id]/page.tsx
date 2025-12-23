@@ -1,6 +1,6 @@
 // app/@modal/(.)notes/[id]/page.tsx
+import { fetchNoteById } from "@/lib/api/clientApi";
 
-import { fetchNoteById } from "@/lib/api/api";
 import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
 import NotePreviewClient from "./NotePreview.client";
 
