@@ -2,7 +2,7 @@
 
 import React from "react";
 import css from "./NoteForm.module.css";
-import { createNote } from "@/lib/api";
+import { createNote } from "@/lib/api/api";
 import { useRouter } from "next/navigation";
 import { useNoteStore } from "@/lib/store/noteStore";
 import type { Tag } from "@/lib/store/noteStore";
