@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 
 import css from "./EditProfilePage.module.css";
 import { getMe, updateMe } from "@/lib/api/clientApi";
+import { useAuthStore } from "@/lib/store/authStore";
 import type { User } from "@/types/user";
 
 export default function EditProfilePage() {
   const router = useRouter();
+  const setUserGlobal = useAuthStore((s) => s.setUser);
 
   const [user, setUser] = useState<User | null>(null);
   const [username, setUsername] = useState("");
@@ -34,7 +36,16 @@ export default function EditProfilePage() {
     setError("");
 
     try {
-      await updateMe({ username });
+      // ✅ бекенд повертає оновленого користувача
+      const updated = await updateMe({ username });
+
+      // ✅ 1) оновлюємо локально (щоб не було стрибків)
+      setUser(updated);
+
+      // ✅ 2) оновлюємо глобальний стан авторизації
+      setUserGlobal(updated);
+
+      // ✅ 3) навігація
       router.push("/profile");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to update profile");

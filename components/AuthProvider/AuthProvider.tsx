@@ -2,36 +2,64 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { checkSession, logout } from "@/lib/api/clientApi";
+import { checkSession, getMe, logout } from "@/lib/api/clientApi";
 import { useAuthStore } from "@/lib/store/authStore";
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { setUser, clearIsAuthenticated } = useAuthStore();
+  const setUser = useAuthStore((s) => s.setUser);
+  const clearIsAuthenticated = useAuthStore((s) => s.clearIsAuthenticated);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const run = async () => {
+      setLoading(true);
+
+      const isPrivate = pathname.startsWith("/profile") || pathname.startsWith("/notes");
+
       try {
-        const user = await checkSession();
-        if (user) {
-          setUser(user);
-        } else {
+        // 1) тільки перевіряємо, чи є активна сесія
+        const session = await checkSession();
+
+        if (!session) {
+          // немає сесії
           clearIsAuthenticated();
-          if (pathname.startsWith("/profile") || pathname.startsWith("/notes")) {
-            router.push("/sign-in");
+
+          if (isPrivate) {
+            // пробуємо коректно "вийти" (почистити cookies, якщо треба)
+            try {
+              await logout();
+            } catch {
+              // ігноруємо
+            }
+            router.replace("/sign-in");
           }
+
+          return;
         }
+
+        // 2) якщо сесія є — окремо отримуємо повні дані користувача
+        const user = await getMe();
+        setUser(user);
       } catch {
         clearIsAuthenticated();
-        router.push("/sign-in");
+
+        if (isPrivate) {
+          try {
+            await logout();
+          } catch {
+            // ігноруємо
+          }
+          router.replace("/sign-in");
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuth();
+    run();
   }, [pathname, router, setUser, clearIsAuthenticated]);
 
   if (loading) return <p>Loading...</p>;

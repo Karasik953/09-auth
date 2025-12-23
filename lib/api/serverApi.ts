@@ -4,9 +4,9 @@ import { api } from "./api";
 import type { Note } from "@/types/note";
 import type { User } from "@/types/user";
 import type { FetchNotesParams, NotesResponse } from "./clientApi";
+import type { AxiosResponse } from "axios";
 
 async function cookieHeader() {
-  // У твоїй версії Next це Promise, тому await
   const store = await cookies();
 
   const accessToken = store.get("accessToken")?.value;
@@ -19,7 +19,6 @@ async function cookieHeader() {
   return parts.join("; ");
 }
 
-// ✅ тільки те, що треба в ТЗ для serverApi:
 export async function fetchNotesServer(params: FetchNotesParams) {
   const cookie = await cookieHeader();
 
@@ -51,12 +50,15 @@ export async function getMeServer() {
   return data;
 }
 
-export async function checkSessionServer() {
+// ✅ ВАЖЛИВО: повертаємо ПОВНИЙ AxiosResponse, а не data
+export async function checkSessionServer(): Promise<AxiosResponse<User | null>> {
   const cookie = await cookieHeader();
 
-  const { data } = await api.get<User | null>("/auth/session", {
+  const res = await api.get<User | null>("/auth/session", {
     headers: cookie ? { Cookie: cookie } : undefined,
+    // щоб не вибивало на 401/403 (якщо бекенд таке дасть), але можна лишити й без цього
+    validateStatus: () => true,
   });
 
-  return data;
+  return res;
 }
