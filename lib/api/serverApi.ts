@@ -1,10 +1,11 @@
 import { cookies } from "next/headers";
-import { api } from "./api";
+import type { AxiosResponse } from "axios";
+
+import { nextServer } from "./api";
 
 import type { Note } from "@/types/note";
 import type { User } from "@/types/user";
 import type { FetchNotesParams, NotesResponse } from "./clientApi";
-import type { AxiosResponse } from "axios";
 
 async function cookieHeader() {
   const store = await cookies();
@@ -22,7 +23,7 @@ async function cookieHeader() {
 export async function fetchNotesServer(params: FetchNotesParams) {
   const cookie = await cookieHeader();
 
-  const { data } = await api.get<NotesResponse>("/notes", {
+  const { data } = await nextServer.get<NotesResponse>("/notes", {
     params: { perPage: 12, ...params },
     headers: cookie ? { Cookie: cookie } : undefined,
   });
@@ -33,7 +34,7 @@ export async function fetchNotesServer(params: FetchNotesParams) {
 export async function fetchNoteByIdServer(id: string) {
   const cookie = await cookieHeader();
 
-  const { data } = await api.get<Note>(`/notes/${id}`, {
+  const { data } = await nextServer.get<Note>(`/notes/${id}`, {
     headers: cookie ? { Cookie: cookie } : undefined,
   });
 
@@ -43,20 +44,19 @@ export async function fetchNoteByIdServer(id: string) {
 export async function getMeServer() {
   const cookie = await cookieHeader();
 
-  const { data } = await api.get<User>("/users/me", {
+  const { data } = await nextServer.get<User>("/users/me", {
     headers: cookie ? { Cookie: cookie } : undefined,
   });
 
   return data;
 }
 
-// ✅ ВАЖЛИВО: повертаємо ПОВНИЙ AxiosResponse, а не data
+// ✅ ВАЖЛИВО: повертаємо ПОВНИЙ AxiosResponse
 export async function checkSessionServer(): Promise<AxiosResponse<User | null>> {
   const cookie = await cookieHeader();
 
-  const res = await api.get<User | null>("/auth/session", {
+  const res = await nextServer.get<User | null>("/auth/session", {
     headers: cookie ? { Cookie: cookie } : undefined,
-    // щоб не вибивало на 401/403 (якщо бекенд таке дасть), але можна лишити й без цього
     validateStatus: () => true,
   });
 

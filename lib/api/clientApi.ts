@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { nextServer } from "./api";
 
 import type { Note } from "@/types/note";
 import type { User } from "@/types/user";
@@ -27,55 +27,55 @@ export type AuthBody = {
 
 // -------- AUTH --------
 export async function register(body: AuthBody) {
-  const { data } = await api.post<User>("/auth/register", body);
+  const { data } = await nextServer.post<User>("/auth/register", body);
   return data;
 }
 
 export async function login(body: AuthBody) {
-  const { data } = await api.post<User>("/auth/login", body);
+  const { data } = await nextServer.post<User>("/auth/login", body);
   return data;
 }
 
 export async function logout() {
-  await api.post("/auth/logout");
+  await nextServer.post("/auth/logout");
 }
 
+// ⚠️ тільки перевірка сесії (user або null)
 export async function checkSession() {
-  // бекенд може повернути 200 без тіла для неавторизованого
-  const { data } = await api.get<User | null>("/auth/session");
+  const { data } = await nextServer.get<User | null>("/auth/session");
   return data;
 }
 
 // -------- USERS --------
 export async function getMe() {
-  const { data } = await api.get<User>("/users/me");
+  const { data } = await nextServer.get<User>("/users/me");
   return data;
 }
 
 export async function updateMe(payload: Partial<Pick<User, "username">>) {
-  const { data } = await api.patch<User>("/users/me", payload);
+  const { data } = await nextServer.patch<User>("/users/me", payload);
   return data;
 }
 
 // -------- NOTES --------
 export async function fetchNotes(params: FetchNotesParams) {
-  const { data } = await api.get<NotesResponse>("/notes", {
+  const { data } = await nextServer.get<NotesResponse>("/notes", {
     params: { perPage: 12, ...params },
   });
   return data;
 }
 
 export async function fetchNoteById(id: string) {
-  const { data } = await api.get<Note>(`/notes/${id}`);
+  const { data } = await nextServer.get<Note>(`/notes/${id}`);
   return data;
 }
 
 export async function createNote(noteData: CreateNotePayload) {
-  const { data } = await api.post<Note>("/notes", noteData);
+  const { data } = await nextServer.post<Note>("/notes", noteData);
   return data;
 }
 
 export async function deleteNote(id: string) {
-  const { data } = await api.delete<Note>(`/notes/${id}`);
+  const { data } = await nextServer.delete<Note>(`/notes/${id}`);
   return data;
 }
